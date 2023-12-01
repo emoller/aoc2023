@@ -1,5 +1,8 @@
-let text:String = Deno.readTextFileSync("input.txt");
+let text: String = Deno.readTextFileSync('input.txt')
 
-text = text.split('').map(x => x + ' ').join('');
+text = text
+    .split('')
+    .map((x) => x + ' ')
+    .join('')
 
-console.log(text);
+console.log(text)
