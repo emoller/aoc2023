@@ -25,27 +25,19 @@ const mergeRanges = (r: Range[]) => {
     return r
 }
 
-// let rr: Range[] = [
-//     { low: 1, high: 10 },
-//     { low: 5, high: 6 },
-//     { low: 3, high: 15 },
-//     { low: 20, high: 25 },
-// ]
-// console.log(mergeRanges(rr))
-
 const str = input.split('\n')
 const seedstr = str[0].split(': ')[1].split(' ')
 let seeds: Range[] = []
 for (let j = 0; j < seedstr.length; j += 2) {
     seeds.push({
         low: parseInt(seedstr[j]),
-        high: parseInt(seedstr[j]) + parseInt(seedstr[j + 1]),
+        high: parseInt(seedstr[j]) + parseInt(seedstr[j + 1]) - 1,
     })
 }
 seeds = sortRanges(seeds)
 
 str.shift()
-let mappings: Mapping[][] = []
+const mappings: Mapping[][] = []
 while (str.length) {
     str.shift()
     str.shift()
@@ -64,52 +56,51 @@ while (str.length) {
     mappings.push(maps)
 }
 
-const splitSeeds = (seed: Range, mapping: Mapping) => {
-    let newseeds: Range[] = []
-    if (seed.low < mapping.range.low) {
-        newseeds.push({
-            low: seed.low,
-            high: Math.min(seed.high, mapping.range.low),
-        })
-    }
-    if (seed.high > mapping.range.high) {
-        newseeds.push({
-            low: Math.max(mapping.range.high, seed.low),
-            high: seed.high,
-        })
-    }
-    if (seed.high > mapping.range.low && seed.low < mapping.range.high) {
-        const low = Math.max(seed.low, mapping.range.low)
-        const high = Math.min(seed.high, mapping.range.high)
-        newseeds.push({
-            low: low + mapping.offset,
-            high: high + mapping.offset,
-        })
-    }
-    return newseeds
-}
-
 const applymapping = (seeds: Range[], mappings: Mapping[]) => {
-    let newseeds: Range[] = []
-    seeds.forEach((s) => {
-        mappings.forEach((m) => {
-            const tmp = splitSeeds(s, m)
-            newseeds = newseeds.concat(tmp)
-            newseeds = mergeRanges(newseeds)
-        })
+    const remapped: Range[] = []
+    const unmapped = seeds
+    mappings.forEach((mapping) => {
+        for (let j = 0; j < unmapped.length; ) {
+            const seed = unmapped[j]
+            if (
+                seed.high < mapping.range.low ||
+                seed.low > mapping.range.high
+            ) {
+                ++j
+                continue
+            }
+            unmapped.splice(j, 1)
+            if (seed.low < mapping.range.low) {
+                unmapped.push({
+                    low: seed.low,
+                    high: Math.min(seed.high, mapping.range.low - 1),
+                })
+            }
+            if (seed.high > mapping.range.high) {
+                unmapped.push({
+                    low: Math.max(mapping.range.high + 1, seed.low),
+                    high: seed.high,
+                })
+            }
+            if (
+                seed.high > mapping.range.low &&
+                seed.low < mapping.range.high
+            ) {
+                const low = Math.max(seed.low, mapping.range.low)
+                const high = Math.min(seed.high, mapping.range.high)
+                remapped.push({
+                    low: low + mapping.offset,
+                    high: high + mapping.offset,
+                })
+            }
+        }
     })
-    return newseeds
+    return mergeRanges(remapped.concat(unmapped))
 }
-
-console.log(mappings)
-console.log(seeds)
 
 let currseeds: Range[] = seeds
 mappings.forEach((mrow) => {
     currseeds = applymapping(currseeds, mrow)
-    console.log(currseeds)
 })
 
-//currseeds = sortRanges(currseeds)
-
-//console.log(currseeds)
+console.log(currseeds[0].low)
