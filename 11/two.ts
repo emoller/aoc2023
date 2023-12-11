@@ -2,7 +2,7 @@ const input = Deno.readTextFileSync('/Users/emoller/src/aoc2023/11/input.txt')
     .split('\n')
     .map((r) => r.split(''))
 
-const exp = 1
+const exp = 999999
 
 type Vec = { x: number; y: number }
 const galaxies: Vec[] = []
